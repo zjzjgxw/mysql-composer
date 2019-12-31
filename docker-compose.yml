@@ -1,0 +1,46 @@
+version: '3'
+
+networks:  #定义网路
+  backend:
+    driver: ${NETWORKS_DRIVER}
+
+services:
+  ### MySQL ################################################
+  mysql:
+    build:
+      context: ./mysql  #自定义镜像
+      args:
+        - MYSQL_VERSION=${MYSQL_VERSION}
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}  #默认创建数据库
+      - MYSQL_USER=${MYSQL_USER}  #创建用户
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}  #用户密码
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} #root 用户秘密
+      - TZ=${WORKSPACE_TIMEZONE}
+    volumes:
+      - ${DATA_PATH_HOST}/mysql:/var/lib/mysql
+      - ${MYSQL_ENTRYPOINT_INITDB}:/docker-entrypoint-initdb.d
+    ports:
+      - "${MYSQL_PORT}:3306"
+    networks:
+      - backend
+
+  mysql-slave:
+    build:
+      context: ./mysql_slave  #自定义镜像
+      args:
+        - MYSQL_VERSION=${MYSQL_VERSION}
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}  #默认创建数据库
+      - MYSQL_USER=${MYSQL_USER}  #创建用户
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}  #用户密码
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} #root 用户秘密
+      - TZ=${WORKSPACE_TIMEZONE}
+    volumes:
+      - ${DATA_PATH_HOST}/mysql_slave:/var/lib/mysql
+      - ${MYSQL_ENTRYPOINT_INITDB}:/docker-entrypoint-initdb.d
+    ports:
+      - "${MYSQL_PORT_SLAVE}:3306"
+    networks:
+      - backend
+
